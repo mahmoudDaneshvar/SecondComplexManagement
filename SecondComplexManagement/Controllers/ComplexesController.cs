@@ -22,5 +22,28 @@ namespace SecondComplexManagement.RestApi.Controllers
             _service.Add(dto);
         }
 
+        [HttpGet]
+        public List<GetAllComplexesDto> GetAll(
+            [FromQuery] string? name, [FromQuery] int? id)
+        {
+            return _service.GetAll(name, id);
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public GetComplexByIdDto GetById(int id)
+        {
+            return _service.GetById(id);
+        }
+
+        [HttpGet]
+        [Route("{id}/blocks")]
+        public GetComplexByIdWithBlocksDto?
+            GetByIdWithBlocks([FromRoute] int id, string? blockName)
+        {
+            return _service.
+                GetByIdWithBlocks(id, blockName);
+        }
+
     }
 }

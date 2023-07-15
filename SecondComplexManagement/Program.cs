@@ -3,6 +3,7 @@ using SecondComplexManagement.PersistanceEF;
 using SecondComplexManagement.PersistanceEF.Blocks;
 using SecondComplexManagement.PersistanceEF.Complexes;
 using SecondComplexManagement.PersistanceEF.Units;
+using SecondComplexManagement.PersistanceEF.UsageTypes;
 using SecondComplexManagement.Services.Blocks;
 using SecondComplexManagement.Services.Blocks.Contracts;
 using SecondComplexManagement.Services.Complexes;
@@ -10,6 +11,8 @@ using SecondComplexManagement.Services.Complexes.Contracts;
 using SecondComplexManagement.Services.Contracts;
 using SecondComplexManagement.Services.Units;
 using SecondComplexManagement.Services.Units.Contracts;
+using SecondComplexManagement.Services.UsageTypes;
+using SecondComplexManagement.Services.UsageTypes.Contracts;
 
 namespace SecondComplexManagement
 {
@@ -33,6 +36,8 @@ namespace SecondComplexManagement
             builder.Services.AddScoped<BlockRepository, EFBlockRepository>();
             builder.Services.AddScoped<UnitRepository, EFUnitRepository>();
             builder.Services.AddScoped<UnitService, UnitAppService>();
+            builder.Services.AddScoped<UsageTypeRepository, EFUsageTypeRepository>();
+            builder.Services.AddScoped<UsageTypeService, UsageTypeAppService>();
 
             builder.Services.AddDbContext<EFDataContext>(_ => 
             _.UseSqlServer("Server=.;Database=SecondComplexManagementDB;Trusted_Connection=True;")

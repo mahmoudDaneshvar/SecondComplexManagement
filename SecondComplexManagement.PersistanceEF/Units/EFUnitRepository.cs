@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SecondComplexManagement.Entities;
 using SecondComplexManagement.Services.Units.Contracts;
+using SecondComplexManagement.Services.Units.Contracts.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,23 @@ namespace SecondComplexManagement.PersistanceEF.Units
         public void Add(Unit unit)
         {
             _units.Add(unit);
+        }
+
+        public void AddRange(List<AddUnitByBlockDto> unitsDto)
+        {
+            var units = new List<Unit>();
+
+            foreach (var unitDto in unitsDto)
+            {
+                units.Add(new Unit
+                {
+                    Block = unitDto.Block,
+                    Name = unitDto.Name,
+                    ResidenceType = unitDto.ResidenceType
+                });
+            }
+
+            _units.AddRange(units);
         }
 
         public bool IsDuplicateUnitNameInBlock(

@@ -1,6 +1,7 @@
 ﻿using SecondComplexManagement.Entities;
 using SecondComplexManagement.Services.Complexes.Contracts;
 using SecondComplexManagement.Services.Complexes.Contracts.Dto;
+using SecondComplexManagement.Services.Complexes.Exceptions;
 using SecondComplexManagement.Services.Contracts;
 
 namespace SecondComplexManagement.Services.Complexes
@@ -33,6 +34,35 @@ namespace SecondComplexManagement.Services.Complexes
         {
             var isExistComplex = _repository
                 .IsExistById(dto.ComplexId);
+        }
+
+        public List<GetAllComplexesDto> GetAll(string? name, int? id)
+        {
+            return _repository
+                .GetAll(name, id);
+        }
+
+        public GetComplexByIdDto GetById(int id)
+        {
+            var isExistComplex = _repository
+                .IsExistById(id);
+
+            if (!isExistComplex)
+            {
+                throw new ComplexNotFoundException();
+            }
+
+            return _repository
+                .GetById(id);
+        }
+
+        public GetComplexByIdWithBlocksDto?
+            GetByIdWithBlocks(int id, string? blockName)
+        {
+            return _repository
+                .GetByIdWithBlocks(id, blockName);
+
+
         }
     }
 }

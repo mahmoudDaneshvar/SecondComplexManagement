@@ -20,5 +20,26 @@ namespace SecondComplexManagement.RestApi.Controllers
         {
             _service.Add(dto);
         }
+
+        [HttpPatch]
+        [Route("{id}")]
+        public void Update([FromRoute] int id,
+            [FromBody] UpdateBlockDto dto)
+        {
+            _service.Update(id, dto);
+        }
+
+        [HttpGet]
+        public List<GetAllBlocksDto> GetAll()
+        {
+            return _service.GetAll();
+        }
+
+        [HttpPost]
+        [Route("with-units")]
+        public void AddWithUnits(AddBlockWithUnitsDto dto)
+        {
+            _service.AddWithUnits(dto);
+        }
     }
 }

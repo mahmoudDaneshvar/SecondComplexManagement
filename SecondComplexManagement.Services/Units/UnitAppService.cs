@@ -5,11 +5,6 @@ using SecondComplexManagement.Services.Contracts;
 using SecondComplexManagement.Services.Units.Contracts;
 using SecondComplexManagement.Services.Units.Contracts.Dto;
 using SecondComplexManagement.Services.Units.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SecondComplexManagement.Services.Units
 {
@@ -46,7 +41,15 @@ namespace SecondComplexManagement.Services.Units
                 throw new DuplicateUnitNameInSameBlockException();
             }
 
-            var unit = new Unit
+            var isBlockFull = _blockRepository
+                .IsFullById(dto.BlockId);
+
+            if (isBlockFull)
+            {
+                throw new BlockUnitsOutOfRangeException();
+            }
+
+            var unit = new Entities.Unit
             {
                 Name = dto.Name,
                 BlockId = dto.BlockId
