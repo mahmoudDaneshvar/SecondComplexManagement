@@ -1,6 +1,4 @@
-﻿
-
-using SecondComplexManagement.Entities;
+﻿using SecondComplexManagement.Entities;
 using SecondComplexManagement.Services.Blocks.Contracts;
 using SecondComplexManagement.Services.Blocks.Contracts.Dto;
 using SecondComplexManagement.Services.Blocks.Exceptions;
@@ -15,141 +13,153 @@ namespace SecondComplexManagement.Services.Blocks
 {
     public class BlockAppService : BlockService
     {
-        private readonly ComplexRepository _complexRepository;
         private readonly BlockRepository _repository;
         private readonly UnitOfWork _unitOfWork;
+        private readonly ComplexRepository _complexRepository;
         private readonly UnitRepository _unitRepository;
 
         public BlockAppService(
-            ComplexRepository complexRepository,
             BlockRepository repository,
             UnitOfWork unitOfWork,
+            ComplexRepository complexRepository,
             UnitRepository unitRepository)
         {
-            _complexRepository = complexRepository;
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _complexRepository = complexRepository;
             _unitRepository = unitRepository;
         }
         public void Add(AddBlockDto dto)
         {
             var isExistComplex = _complexRepository
                 .IsExistById(dto.ComplexId);
+
             if (!isExistComplex)
             {
                 throw new ComplexNotFoundException();
             }
-
-            var isDuplicatedNameInComplex = _repository
-                .IsDuplicateNameByComplexId(dto.ComplexId, dto.Name);
-
-            if (isDuplicatedNameInComplex)
+            if (_repository
+                .IsExistBlockNameByComplexId(dto.ComplexId, dto.Name))
             {
                 throw new DuplicateBlockNameInSameComplexException();
+            }
+            if (dto.UnitCount >
+                _complexRepository.GetUnitCountById(dto.ComplexId))
+            {
+                throw new BlockUnitCountOutOfRangeException();
             }
 
             var complexUnitCount = _complexRepository
                 .GetUnitCountById(dto.ComplexId);
 
-            var complexBlocksUnitCounts = _repository
-                .GetBlocksUnitsCountByComplexId(dto.ComplexId);
+            var blockUnitsCountOfComplex = _repository
+                .GetUnitsCountByComplexId(dto.ComplexId);
 
-            if (dto.UnitCount + complexBlocksUnitCounts
+            if (blockUnitsCountOfComplex + dto.UnitCount
                 > complexUnitCount)
             {
-                throw new UnitCountOutOfComplexRangeException();
+                throw new ComplexIsFullException();
             }
+
+
 
             var block = new Block
             {
                 ComplexId = dto.ComplexId,
                 Name = dto.Name,
-                UnitCount = dto.UnitCount,
+                UnitCount = dto.UnitCount
             };
 
             _repository.Add(block);
             _unitOfWork.Complete();
-
-
         }
 
         public void AddWithUnits(AddBlockWithUnitsDto dto)
         {
-            var isExistComplex = _complexRepository
-                .IsExistById(dto.ComplexId);
-
-            if (!isExistComplex)
-            {
-                throw new ComplexNotFoundException();
-            }
-
             var isDuplicateBlockName =
-                _repository
-                .IsDuplicateNameByComplexId(
-                    dto.ComplexId,
-                    dto.Name);
+                _repository.IsExistBlockNameByComplexId(
+                    dto.Block.ComplexId, dto.Block.Name);
 
             if (isDuplicateBlockName)
             {
                 throw new DuplicateBlockNameInSameComplexException();
             }
+            var complexBlockUnitsCount = _repository
+                .GetUnitsCountByComplexId(dto.Block.ComplexId);
 
-            var names = dto.Units.Select(_ => _.Name);
+            var complexUnitCount = _complexRepository
+                .GetUnitCountById(dto.Block.ComplexId);
 
-            if (names.Count() != names.Distinct().Count())
+            if (complexBlockUnitsCount + dto.Block.UnitCount
+                > complexUnitCount)
+            {
+                throw new ComplexIsFullException();
+            }
+            
+
+            var isDuplicateUnitName = dto.Units
+                .Select(_ => _.Name).Distinct().Count()
+                == dto.Units.Select(_ => _.Name).Count() ? false : true;
+
+            if (isDuplicateUnitName)
             {
                 throw new DuplicateUnitNameInSameBlockException();
             }
 
-            var complexUnitCount = _complexRepository
-                .GetUnitCountById(dto.ComplexId);
+            var isBlockFull = dto.Units.Count > dto.Block.UnitCount ? 
+                true : false;
 
-            var complexAddedUnits = _repository
-                .GetBlocksUnitsCountByComplexId(dto.ComplexId);
-
-            if (dto.UnitCount + complexAddedUnits
-                > complexUnitCount)
+            if(isBlockFull)
             {
-                throw new UnitCountOutOfComplexRangeException();
+                throw new BlockIsFullException();
             }
 
-            if (dto.Units.Count() > dto.UnitCount)
-            {
-                throw new BlockAddedUnitsOutOfRangeException();
-            }
-
-            if (dto.Units.Count() + complexAddedUnits
-                > complexUnitCount)
-            {
-                throw new UnitCountOutOfComplexRangeException();
-            }
 
             var block = new Block
             {
-                ComplexId = dto.ComplexId,
-                Name = dto.Name,
-                UnitCount = dto.UnitCount,
+                ComplexId = dto.Block.ComplexId,
+                Name = dto.Block.Name,
+                UnitCount = dto.Block.UnitCount,
             };
 
-            _repository
-                .Add(block);
-
-            var units = new List<AddUnitByBlockDto>();
+            var units = new List<Unit>();
 
             foreach (var unit in dto.Units)
             {
-                units.Add(new AddUnitByBlockDto
+                units.Add(new Unit
                 {
+                    Block = block,
                     Name = unit.Name,
-                    ResidenceType = unit.ResidenceType,
-                    Block = block
+                    ResidenceType = unit.Type
                 });
             }
-            _unitRepository
-                .AddRange(units);
 
+            _unitRepository.AddRange(units);
             _unitOfWork.Complete();
 
+        }
+
+        public void Delete(int id)
+        {
+            var isExistBlock = _repository
+                .IsExistById(id);
+            if (!isExistBlock)
+            {
+                throw new BlockNotFoundException();
+            }
+
+            var doesBlockHaveUnit = _repository
+                .DoesHaveUnit(id);
+
+            if (doesBlockHaveUnit)
+            {
+                throw new BlockHasUnitException();
+            }
+
+            var block = _repository
+                .FindById(id);
+            _repository.Delete(block);
+            _unitOfWork.Complete();
         }
 
         public List<GetAllBlocksDto> GetAll()
@@ -158,50 +168,56 @@ namespace SecondComplexManagement.Services.Blocks
                 .GetAll();
         }
 
-        public void Update(int id, UpdateBlockDto dto)
+        public GetBlockByIdDto? GetById(int id)
         {
-            var block = _repository
-                .FindById(id);
+            return _repository
+                .GetById(id);
+        }
 
-            if (block == null)
+        public void Update(int id, EditBlockDto dto)
+        {
+            var isExistsBlock = _repository
+                .IsExistById(id);
+
+            if (!isExistsBlock)
             {
                 throw new BlockNotFoundException();
             }
 
+            var complexId = _repository
+                .GetComplexIdById(id);
 
+            var isDuplicateBlockName = _repository
+                .IsExistBlockNameByComplexId(complexId, dto.Name);
 
-            var isDuplicateName = _repository
-                 .IsDuplicateNameByComplexId(
-                id, dto.Name, block.ComplexId);
-
-            if (isDuplicateName)
+            if (isDuplicateBlockName)
             {
-                throw new DuplicateBlockNameInSameComplexException();
+                var IdWhereDuplicateName
+                     = _repository
+                     .GetIdByNameAndComplexId(complexId, dto.Name);
+
+                if (id != IdWhereDuplicateName)
+                {
+                    throw new DuplicateBlockNameInSameComplexException();
+                }
+
             }
 
-            var DoesBlockHaveAnyUnit = _repository
-                .DoesBlockHaveAnyUnit(id);
 
-            if (!DoesBlockHaveAnyUnit)
-            {
-                block.UnitCount = dto.UnitCount;
-            }
-
-            var complexUnitCount = _complexRepository
-                .GetUnitCountById(block.ComplexId);
-
-            var ComplexBlocksUnitCountsExceptThisBlock
-                = _repository.ComplexBlocksUnitCountsExceptThisBlock(
-                    id, block.ComplexId);
-
-            if (
-                ComplexBlocksUnitCountsExceptThisBlock + dto.UnitCount
-                > complexUnitCount)
-            {
-                throw new UnitCountOutOfComplexRangeException();
-            }
+            var block = _repository
+                .FindById(id);
 
             block.Name = dto.Name;
+
+            var doesBlockHaveAnyUnit = _repository
+                .DoesHaveUnit(id);
+
+            if (!doesBlockHaveAnyUnit)
+            {
+                block.UnitCount = dto.UnitCount;
+
+            }
+
 
             _repository.Update(block);
             _unitOfWork.Complete();

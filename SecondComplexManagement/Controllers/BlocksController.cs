@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SecondComplexManagement.Services.Blocks;
 using SecondComplexManagement.Services.Blocks.Contracts;
 using SecondComplexManagement.Services.Blocks.Contracts.Dto;
+using SecondComplexManagement.Services.Units.Contracts.Dto;
 
 namespace SecondComplexManagement.RestApi.Controllers
 {
@@ -10,6 +10,7 @@ namespace SecondComplexManagement.RestApi.Controllers
     public class BlocksController : Controller
     {
         private readonly BlockService _service;
+
         public BlocksController(BlockService service)
         {
             _service = service;
@@ -20,11 +21,9 @@ namespace SecondComplexManagement.RestApi.Controllers
         {
             _service.Add(dto);
         }
-
-        [HttpPatch]
+        [HttpPut]
         [Route("{id}")]
-        public void Update([FromRoute] int id,
-            [FromBody] UpdateBlockDto dto)
+        public void Update([FromRoute] int id, EditBlockDto dto)
         {
             _service.Update(id, dto);
         }
@@ -33,6 +32,12 @@ namespace SecondComplexManagement.RestApi.Controllers
         public List<GetAllBlocksDto> GetAll()
         {
             return _service.GetAll();
+        }
+        [HttpGet]
+        [Route("{id}")]
+        public GetBlockByIdDto? GetById([FromRoute]int id)
+        {
+            return _service.GetById(id);
         }
 
         [HttpPost]

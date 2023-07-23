@@ -1,27 +1,24 @@
-﻿
-
-using SecondComplexManagement.Entities;
+﻿using SecondComplexManagement.Entities;
 using SecondComplexManagement.Services.Blocks.Contracts.Dto;
 
 namespace SecondComplexManagement.Services.Blocks.Contracts
 {
     public interface BlockRepository
     {
-        public bool IsDuplicateNameByComplexId(int complexId, string name);
-        public int GetBlocksUnitsCountByComplexId(int complexId);
         public void Add(Block block);
+        public bool IsExistBlockNameByComplexId(int complexId, string name);
         public bool IsExistById(int id);
-        public bool IsFullById(int id);
+
+        public int GetUnitsCountByComplexId(int complexId);
         public int GetComplexIdById(int id);
-        public bool IsDuplicateNameByComplexId(
-            int id, string name, int complexId);
-        public Block? FindById(int id);
-        public bool DoesBlockHaveAnyUnit(int id);
+        bool IsFullById(int id);
 
-        public void Update(Block block);
-        public int ComplexBlocksUnitCountsExceptThisBlock(
-            int id, int complexId);
-
+        public Block FindById(int id);
+        void Update(Block block);
+        public bool DoesHaveUnit(int id);
+        public int GetIdByNameAndComplexId(int complexId, string name);
         public List<GetAllBlocksDto> GetAll();
+        GetBlockByIdDto? GetById(int id);
+        public void Delete(Block block);
     }
 }

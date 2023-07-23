@@ -1,25 +1,16 @@
-﻿using SecondComplexManagement.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using SecondComplexManagement.Services.Units.Contracts.Dto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SecondComplexManagement.Services.Blocks.Contracts.Dto
 {
     public class AddBlockWithUnitsDto
     {
-        [Required]
-        public int ComplexId { get; set; }
-        [Required]
-        public string Name { get; set; }
-        [Required]
-        public int UnitCount { get; set; }
+        public AddBlockDto Block { get; set; }
 
-        public HashSet<UnitDto> Units { get; set; }
-    }
-
-    public class UnitDto
-    {
-        [Required]
-        public ResidenceType ResidenceType { get; set; }
-        [Required]
-        public string Name { get; set; }
+        public List<AddUnitsForBlockDto> Units { get; set; }
     }
 }

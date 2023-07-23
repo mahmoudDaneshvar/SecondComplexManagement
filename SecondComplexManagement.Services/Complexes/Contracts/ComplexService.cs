@@ -1,16 +1,21 @@
 ﻿using SecondComplexManagement.Services.Complexes.Contracts.Dto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SecondComplexManagement.Services.Complexes.Contracts
 {
     public interface ComplexService
     {
         public void Add(AddComplexDto dto);
-        public void EditUnitCount(EditComplexUnitCountDto dto);
-        public List<GetAllComplexesDto> GetAll(
-            string? name, int? id);
+        List<GetAllComplexesDto> GetAll(string? searchName);
+        public void UpdateUnitCount(int id, int unitCount);
+        public GetComplexByIdDto? GetById(int id);
+        public GetComplexByIdWithBlocksDto? GetByIdWithBlocks
+            (int id,string? blockNameSearch);
 
-        public GetComplexByIdDto GetById(int id);
-        public GetComplexByIdWithBlocksDto? GetByIdWithBlocks(
-            int id, string? blockNameB);
+        public void Delete(int id);
     }
 }

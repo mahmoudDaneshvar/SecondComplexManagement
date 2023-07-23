@@ -4,16 +4,15 @@ using SecondComplexManagement.Services.Units.Contracts.Dto;
 
 namespace SecondComplexManagement.RestApi.Controllers
 {
-    [Route("units")]
     [ApiController]
+    [Route("units")]
     public class UnitsController : Controller
     {
         private readonly UnitService _service;
-        public UnitsController(UnitService service)
+        public UnitsController(UnitService unitService)
         {
-            _service = service;
+            _service = unitService;
         }
-
         [HttpPost]
         public void Add(AddUnitDto dto)
         {

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SecondComplexManagement.Entities;
 using SecondComplexManagement.Services.Units.Contracts;
-using SecondComplexManagement.Services.Units.Contracts.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,46 +11,33 @@ namespace SecondComplexManagement.PersistanceEF.Units
 {
     public class EFUnitRepository : UnitRepository
     {
-        private readonly DbSet<Unit> _units;
+        private readonly DbSet<Entities.Unit> _units;
 
         public EFUnitRepository(EFDataContext context)
         {
-            _units = context.Set<Unit>();
+            _units = context.Set<Entities.Unit>();
         }
-
-        public void Add(Unit unit)
+        public void Add(Entities.Unit unit)
         {
             _units.Add(unit);
         }
 
-        public void AddRange(List<AddUnitByBlockDto> unitsDto)
+        public void AddRange(List<Unit> units)
         {
-            var units = new List<Unit>();
-
-            foreach (var unitDto in unitsDto)
-            {
-                units.Add(new Unit
-                {
-                    Block = unitDto.Block,
-                    Name = unitDto.Name,
-                    ResidenceType = unitDto.ResidenceType
-                });
-            }
-
             _units.AddRange(units);
         }
 
-        public bool IsDuplicateUnitNameInBlock(
-            int blockId, string name)
+        public bool IsDuplicateName(int blockId, string name)
         {
-            if (_units
-                .Where(_ => _.BlockId == blockId)
-                .Any(_ => _.Name == name))
-            {
-                return true;
-            }
+            return _units
+                .Any(_ => _.BlockId == blockId
+                && _.Name == name);
+        }
 
-            return false;
+        public bool IsExistUnitByComplexId(int id)
+        {
+            return _units
+                .Any(_ => _.Block.ComplexId == id);
         }
     }
 }

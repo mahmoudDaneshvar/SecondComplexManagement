@@ -1,8 +1,14 @@
-﻿using SecondComplexManagement.Entities;
+﻿using SecondComplexManagement.Services.Complexes.Contracts.Dto;
 using SecondComplexManagement.Services.Complexes.Contracts;
-using SecondComplexManagement.Services.Complexes.Contracts.Dto;
-using SecondComplexManagement.Services.Complexes.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using SecondComplexManagement.Services.Contracts;
+using SecondComplexManagement.Entities;
+using SecondComplexManagement.Services.Units.Contracts;
+using SecondComplexManagement.Services.Complexes.Exceptions;
 
 namespace SecondComplexManagement.Services.Complexes
 {
@@ -10,12 +16,16 @@ namespace SecondComplexManagement.Services.Complexes
     {
         private readonly ComplexRepository _repository;
         private readonly UnitOfWork _unitOfWork;
+        private readonly UnitRepository _unitRepository;
+
         public ComplexAppService(
-            ComplexRepository complexRepository,
-            UnitOfWork unitOfWork)
+            ComplexRepository repository,
+            UnitOfWork unitOfWork,
+            UnitRepository unitRepository)
         {
-            _repository = complexRepository;
+            _repository = repository;
             _unitOfWork = unitOfWork;
+            _unitRepository = unitRepository;
         }
         public void Add(AddComplexDto dto)
         {
@@ -29,20 +39,7 @@ namespace SecondComplexManagement.Services.Complexes
             _unitOfWork.Complete();
         }
 
-        public void EditUnitCount(
-            EditComplexUnitCountDto dto)
-        {
-            var isExistComplex = _repository
-                .IsExistById(dto.ComplexId);
-        }
-
-        public List<GetAllComplexesDto> GetAll(string? name, int? id)
-        {
-            return _repository
-                .GetAll(name, id);
-        }
-
-        public GetComplexByIdDto GetById(int id)
+        public void Delete(int id)
         {
             var isExistComplex = _repository
                 .IsExistById(id);
@@ -52,17 +49,67 @@ namespace SecondComplexManagement.Services.Complexes
                 throw new ComplexNotFoundException();
             }
 
+            var doesComplexHaveUnit = _unitRepository
+                .IsExistUnitByComplexId(id);
+
+            if (doesComplexHaveUnit)
+            {
+                throw new ComplexHasUnitException();
+            }
+
+            var complex = _repository
+                .FindById(id);
+            _repository
+                .Delete(complex);
+            _unitOfWork.Complete();
+
+        }
+
+        public List<GetAllComplexesDto> GetAll(string? searchName)
+        {
+            return _repository
+                .GetAllWithSearchName(searchName);
+        }
+
+        public GetComplexByIdDto? GetById(int id)
+        {
             return _repository
                 .GetById(id);
         }
 
-        public GetComplexByIdWithBlocksDto?
-            GetByIdWithBlocks(int id, string? blockName)
+        public GetComplexByIdWithBlocksDto? GetByIdWithBlocks(
+            int id,
+            string? blockNameSearch)
         {
             return _repository
-                .GetByIdWithBlocks(id, blockName);
+                .GetByIdWithBlocks(id, blockNameSearch);
+        }
 
+        public void UpdateUnitCount(int id, int unitCount)
+        {
+            var isExistComplex = _repository
+                .IsExistById(id);
 
+            if (!isExistComplex)
+            {
+                throw new ComplexNotFoundException();
+            }
+
+            var doesComplexHasUnit = _unitRepository
+                .IsExistUnitByComplexId(id);
+
+            if(doesComplexHasUnit)
+            {
+                throw new ComplexHasUnitException();
+            }
+
+            var complex = _repository
+                .FindById(id);
+
+            complex.UnitCount = unitCount;
+
+            _repository.Update(complex);
+            _unitOfWork.Complete();
         }
     }
 }

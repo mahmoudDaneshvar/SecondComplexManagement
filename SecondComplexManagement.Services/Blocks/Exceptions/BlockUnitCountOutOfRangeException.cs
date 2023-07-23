@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SecondComplexManagement.Services.Blocks.Exceptions
 {
-    internal class UnitCountOutOfComplexRangeException : Exception
+    public class BlockUnitCountOutOfRangeException : Exception
     {
     }
 }

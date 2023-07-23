@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecondComplexManagement.Services.UsageTypes.Exceptions
+namespace SecondComplexManagement.Services.Complexes.Exceptions
 {
-    internal class DuplicateUsageTypeNameException : Exception
+    public class ComplexHasUnitException : Exception
     {
     }
 }

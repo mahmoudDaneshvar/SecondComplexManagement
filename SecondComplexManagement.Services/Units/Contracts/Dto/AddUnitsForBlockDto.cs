@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace SecondComplexManagement.Services.Units.Contracts.Dto
 {
-    public class AddUnitDto
+    public class AddUnitsForBlockDto
     {
         public string Name { get; set; }
-        public int BlockId { get; set; }
-        public ResidenceType ResidenceType { get; set; }
+        public ResidenceType Type { get; set; }
     }
 }

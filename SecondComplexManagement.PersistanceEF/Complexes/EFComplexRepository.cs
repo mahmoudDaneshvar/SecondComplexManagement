@@ -1,99 +1,31 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SecondComplexManagement.Entities;
+using SecondComplexManagement.PersistanceEF;
 using SecondComplexManagement.Services.Complexes.Contracts;
 using SecondComplexManagement.Services.Complexes.Contracts.Dto;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SecondComplexManagement.PersistanceEF.Complexes
+namespace SecondComplexManagement.Services.Unit.Test.Complexes
 {
 
     public class EFComplexRepository : ComplexRepository
     {
-        private readonly EFDataContext _context;
-        private readonly DbSet<Complex> _complexes;
+        private DbSet<Complex> _complexes;
+        private DbSet<Block> _blocks;
 
         public EFComplexRepository(EFDataContext context)
         {
-            _context = context;
             _complexes = context.Set<Complex>();
+            _blocks = context.Set<Block>();
         }
         public void Add(Complex complex)
         {
             _complexes.Add(complex);
         }
 
-        public List<GetAllComplexesDto> GetAll(
-            string? name, int? id)
+        public Complex? FindById(int id)
         {
-            var result = _complexes
-                .Select(_ => new GetAllComplexesDto
-                {
-                    Id = _.Id,
-                    Name = _.Name,
-                    AddedUnitsCount = _.Blocks
-                    .SelectMany(_ => _.Units).Count(),
-                    RemainedUnitsCount = _.UnitCount - _.Blocks
-                    .SelectMany(_ => _.Units).Count()
-                });
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                result = result
-                    .Where(_ => _.Name.Contains(name));
-            }
-
-            if (id != 0
-                && id != null)
-            {
-                result = result
-                    .Where(_ => _.Id == id);
-            }
-
-            return result.ToList();
-        }
-
-        public GetComplexByIdDto GetById(int id)
-        {
-            var result = _complexes
-                .Where(_ => _.Id == id)
-                .Select(_ => new GetComplexByIdDto
-                {
-                    Id = _.Id,
-                    Name = _.Name,
-                    AddedUnitsCount = _.Blocks
-                    .SelectMany(_ => _.Units).Count(),
-                    RemainedUnitsCount = _.UnitCount - _.Blocks
-                    .SelectMany(_ => _.Units).Count(),
-                    AddedBlocksCount = _.Blocks.Count
-                });
-
-            return result.First();
-        }
-
-        public GetComplexByIdWithBlocksDto?
-            GetByIdWithBlocks(int id, string? blockName)
-        {
-            var result = _complexes
-                .Where(_ => _.Id == id)
-                .Select(_ => new GetComplexByIdWithBlocksDto
-                {
-                    Name = _.Name,
-                    Blocks = _.Blocks
-                    .Where(_=> blockName != null? _.Name.Contains(blockName):true)
-                    .Select(b => new BlockDto
-                    {
-                        BlockUntsCount = b.Units.Count,
-                        Name = b.Name
-                    }).ToList()
-                });
-
-
-
-            return result.FirstOrDefault();
+            return _complexes
+                .SingleOrDefault(_ => _.Id == id);
         }
 
 
@@ -109,6 +41,85 @@ namespace SecondComplexManagement.PersistanceEF.Complexes
         {
             return _complexes
                 .Any(_ => _.Id == id);
+        }
+
+        public int GetCountOfUnitsById(int id)
+        {
+            return _blocks
+                .Where(_ => _.ComplexId == id)
+                .SelectMany(_ => _.Units).Count();
+
+        }
+
+        public void Update(Complex complex)
+        {
+            _complexes
+                .Update(complex);
+        }
+
+        public List<GetAllComplexesDto> GetAllWithSearchName(string? searchName)
+        {
+            var result = _complexes
+                .Select(_ => new GetAllComplexesDto
+                {
+                    Id = _.Id,
+                    Name = _.Name,
+                    AddedUnitCount = _.Blocks.SelectMany(_ => _.Units).Count(),
+                    RemainedUnitsCount = _.UnitCount - _.Blocks.SelectMany(_ => _.Units).Count()
+                });
+
+            if (!string.IsNullOrEmpty(searchName))
+            {
+                result = result
+                    .Where(_ => _.Name.Contains(searchName));
+            }
+
+            return result.ToList();
+        }
+
+        public GetComplexByIdDto? GetById(int id)
+        {
+            return _complexes
+                .Where(_ => _.Id == id)
+                .Select(_ => new GetComplexByIdDto
+                {
+                    Id = _.Id,
+                    Name = _.Name,
+
+                    AddedUnitsCount = _.Blocks
+                    .SelectMany(_ => _.Units).Count(),
+
+                    RemainedUnitsCount = _.UnitCount - _.Blocks
+                    .SelectMany(_ => _.Units).Count(),
+
+                    AddedBlocksCount = _.Blocks.Count()
+                }).FirstOrDefault();
+        }
+
+        public GetComplexByIdWithBlocksDto? GetByIdWithBlocks(
+            int id,
+            string? blockNameSearch)
+        {
+            return _complexes
+                .Where(_ => _.Id == id)
+                .Select(_ => new GetComplexByIdWithBlocksDto
+                {
+                    Id = _.Id,
+                    Name = _.Name,
+                    Blocks = _.Blocks
+                    .Where(b => blockNameSearch != null ? b.Name
+                    .Contains(blockNameSearch) : true)
+                    .Select(b => new BlockDto
+                    {
+                        Name = b.Name,
+                        AddedUnitsCount = b.Units.Count()
+                    }).ToList()
+                }).FirstOrDefault();
+        }
+
+        public void Delete(Complex complex)
+        {
+            _complexes.Remove(complex);
         }
     }
 }

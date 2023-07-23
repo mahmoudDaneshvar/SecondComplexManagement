@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SecondComplexManagement.Services.Complexes.Exceptions
 {
-    internal class ComplexNotFoundException : Exception
+    public class ComplexNotFoundException : Exception
     {
     }
 }

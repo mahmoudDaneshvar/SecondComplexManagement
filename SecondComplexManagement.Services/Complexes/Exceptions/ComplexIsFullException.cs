@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecondComplexManagement.Services.Units.Exceptions
+namespace SecondComplexManagement.Services.Complexes.Exceptions
 {
-    public class DuplicateUnitNameInSameBlockException : Exception
+    public class ComplexIsFullException : Exception
     {
+
     }
 }
